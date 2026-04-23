@@ -16,12 +16,12 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file:
 
-    prices = pd.read_excel(uploaded_file, index_col=0, parse_dates=True)
-    returns = prices.pct_change().dropna()
+    returns = pd.read_excel(uploaded_file, index_col=0, parse_dates=True)
+   
 
     st.success("returns.xlsx loaded successfully")
 
-    asset_names = prices.columns.tolist()
+    asset_names = returns.columns.tolist()
     n_assets = len(asset_names)
 
     # =====================================================
@@ -29,7 +29,8 @@ if uploaded_file:
     # =====================================================
     with st.sidebar:
         st.header("Simulation Settings")
-        rf = st.number_input("Risk‑free rate", value=0.0617)
+        rf_pct = st.number_input("Risk‑free rate (%)", value=6.17)
+        rf=rf_pct/100
         n_sims = st.slider("Number of simulations", 1_000, 50_000, 10_000)
 
     # =====================================================
@@ -40,15 +41,17 @@ if uploaded_file:
     bounds_df = pd.DataFrame(
         {
             "Asset": asset_names,
-            "Min Weight": [0.0] * n_assets,
-            "Max Weight": [1.0 / n_assets * 2] * n_assets
+            "Min Weight (%)": [0.0] * n_assets,
+            "Max Weight (%)": [100 / n_assets * 2] * n_assets
         }
     )
 
     bounds_df = st.data_editor(bounds_df, num_rows="fixed")
 
-    min_w = bounds_df["Min Weight"].values
-    max_w = bounds_df["Max Weight"].values
+    min_w = bounds_df["Min Weight (%)"].values/100
+    max_w = bounds_df["Max Weight (%)"].values/100
+
+   
 
     # =====================================================
     # Monte‑Carlo engine
